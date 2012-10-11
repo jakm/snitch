@@ -1,11 +1,10 @@
-#!/usr/bin/python
-
 import argparse
 import requests
 import sys
 import time
 
 from collections import defaultdict
+
 
 class Snitch(object):
 
