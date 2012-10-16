@@ -105,6 +105,10 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
     Snitch(args.filename, args.sentry_url, args.public_key).tail()
+
+
+if __name__ == '__main__':
+    main()
