@@ -16,5 +16,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Logging'],
+    install_requires=['raven', 'requests'],
     entry_points={'console_scripts': ['snitch = snitch.snitch.main']},
 )
