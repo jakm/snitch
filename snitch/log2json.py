@@ -17,57 +17,40 @@ class Log2Json(logging.Formatter):
     Raven (github/getsentry/raven-python) is used to build the stack
     traces.
 
-    Simplest usage:
+    Usage:
 
-    Instantiate this class with a filename in the constructor. This
-    filename will be used to log messages to in JSON format. From
-    there, you can use Snitch to send the messages on to Sentry.
-
-    Advanced usage:
-
-    Don't pass a filename in the constructor and build your own
-    logging stack wherein you use this class as a formatter for some
-    handler."""
+        handler = logging.StreamHandler()
+        handler.setFormatter(Log2Json())
+        logging.getLogger().addHandler(handler)
+    """
 
     # stack frames in these modules are excluded
     EXCLUDE_MODULES = ('raven.utils.stacks',
                        'json_formatter',
                        'logging')
 
-    def __init__(self, project, filename=None, fqdn=None,
-                 string_max_length=None, list_max_length=None):
+    def __init__(self, project=None, fqdn=None,
+                 string_max_length=MAX_LENGTH_STRING,
+                 list_max_length=MAX_LENGTH_LIST):
         """
-        project: the sentry project,
-        filename: where the json logs go,
+        project: the sentry project, if you don't specify this, you
+                 will have to add it later on
         fqdn: if you want, you can override the fqdn,
         string_max_length: max length of stack frame string representations,
         list_max_length: max frames that will be rendered in a stack trace"""
         self.project = project
         self.fqdn = fqdn or getfqdn()
-        self.string_max_length = int(string_max_length or MAX_LENGTH_STRING)
-        self.list_max_length = int(list_max_length or MAX_LENGTH_LIST)
-
-        if filename:
-            self.install(filename)
-
-    def install(self, filename):
-        """Installs a FileHandler with this class as a formatter. If
-        you need alternate behaviour, then just build your own logging
-        stack, it's really easy."""
-        stream_handler = logging.FileHandler(filename)
-        stream_handler.setFormatter(self)
-        logging.getLogger().addHandler(stream_handler)
+        self.string_max_length = int(string_max_length)
+        self.list_max_length = int(list_max_length)
 
     def format(self, record):
         """Populates the message attribute of the record and returns a
-        json representation of the record that is suitable for
-        Sentry.
+        json representation of the record that is suitable for Sentry.
 
         Stacktraces are included only for exceptions."""
         record.message = record.msg % record.args
 
-        data = {'project': self.project,
-                'event_id': str(uuid.uuid4().hex),
+        data = {'event_id': str(uuid.uuid4().hex),
                 'message': record.message,
                 'timestamp': datetime.datetime.utcnow().isoformat(),
                 'level': record.levelno,
@@ -78,6 +61,9 @@ class Log2Json(logging.Formatter):
                                               'params': record.args
                                               }
                 }
+
+        if self.project:
+            data['project'] = self.project
 
         # add exception info
         if record.exc_info:

@@ -10,14 +10,15 @@ class Snitch(object):
 
     json_logfile = None
 
-    def __init__(self, filename, api_url, public_key, reopen_interval,
+    def __init__(self, filename, api_url, project, public_key, reopen_interval,
                  read_delay):
         self.filename = filename
         self.api_url = api_url
+        self.project = project
         self.public_key = public_key
         self.reopen_interval = reopen_interval
         self.read_delay = read_delay
-        self.reset_counters()
+        self.counters = defaultdict(int)
 
     def send_to_sentry(self, json):
         headers = {
@@ -98,17 +99,30 @@ class Snitch(object):
                     # right?
                     self.json_logfile.seek(where)
                 elif line[0] == '{':
-                    # the first character must be a '{' (and that is
-                    # the only sanity checking we do)
-                    self.send_to_sentry(line)
+                    try:
+                        # this can throw ValueError on deserialising the json
+                        line = self.pre_process(line)
+                        self.send_to_sentry(line)
+                    except ValueError:
+                        # in which case we count and ignore the record
+                        self.counters['error'] += 1
 
                 time.sleep(self.read_delay)
+
+    def pre_process(self, line):
+        """sets the 'project' if it was given as a startup argument"""
+        if self.project:
+            record = json.loads(line)
+            record['project'] = self.project
+            return json.dumps(record)
+        return line
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--filename', help='the file to monitor for new log messages', required=True)
     parser.add_argument('-s', '--sentry-url', help='url to the sentry api, for example: http://my.sentry/api/store', required=True)
+    parser.add_argument('-p', '--project', help='the sentry project, for example "1", use if not already set in log records or to override')
     parser.add_argument('-k', '--public-key', help='the public key for the sentry project', required=True)
     parser.add_argument('-r', '--reopen-interval', help='seconds between reopens', default=30)
     parser.add_argument('-d', '--read-delay', help='used to throttle, defaults to .1 seconds', default=.1)
@@ -117,7 +131,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    Snitch(args.filename, args.sentry_url, args.public_key,
+    Snitch(args.filename, args.sentry_url, args.project, args.public_key,
            args.reopen_interval, args.read_delay).tail()
 
 
