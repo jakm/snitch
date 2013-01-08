@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='snitch',
     packages=['snitch'],
-    version='0.1',
+    version='0.2',
     author='Ronald Evers',
     author_email='ronald@ch10.nl',
     url='https://github.com/ronaldevers/snitch',
