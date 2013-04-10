@@ -15,6 +15,7 @@ logger.setLevel(logging.INFO)
 
 def tester():
 
+    s = set([1,2,3])
 
     # test info
     logger.info('log2json initialised')
