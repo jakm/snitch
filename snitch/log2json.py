@@ -1,10 +1,9 @@
 import datetime
-import json
 import logging
 import uuid
 
 from raven.conf.defaults import MAX_LENGTH_LIST, MAX_LENGTH_STRING
-from raven.utils import varmap
+from raven.utils import json, varmap
 from raven.utils.encoding import shorten
 from raven.utils.stacks import get_stack_info, iter_stack_frames
 
