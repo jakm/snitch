@@ -50,11 +50,6 @@ class Log2Json(logging.Formatter):
         logging.getLogger().addHandler(handler)
     """
 
-    # stack frames in these modules are excluded
-    EXCLUDE_MODULES = ('raven.utils.stacks',
-                       'json_formatter',
-                       'logging')
-
     def __init__(self, project=None, fqdn=None,
                  string_max_length=MAX_LENGTH_STRING,
                  list_max_length=MAX_LENGTH_LIST):
@@ -132,12 +127,6 @@ class Log2Json(logging.Formatter):
                 list_length=self.list_max_length),
             get_stack_info(iter_stack_frames(stack)))
         # end of copied code
-
-        # filter out unwanted frames..
-        # don't know how to do this earlier, so we just do a
-        # post-processing step and filter out unwanted frames
-        frames = [frame for frame in frames
-                  if frame['module'] not in self.EXCLUDE_MODULES]
 
         data['sentry.interfaces.Stacktrace'] = {
             'frames': frames }
