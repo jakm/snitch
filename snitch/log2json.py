@@ -24,14 +24,13 @@ def _convert_to_json(sentry_data):
 
     try:
         return json.dumps(sentry_data)
-    except TypeError, e:
+    except TypeError:
         # try again without exception info
-        if record.exc_info:
-            sentry_data.pop(SENTRY_INTERFACES_EXCEPTION)
-            try:
-                return json.dumps(sentry_data)
-            except TypeError, e:
-                pass
+        sentry_data.pop(SENTRY_INTERFACES_EXCEPTION, None)
+        try:
+            return json.dumps(sentry_data)
+        except TypeError:
+            pass
 
         # give up
         return '{}'
