@@ -76,13 +76,13 @@ class Log2Json(logging.Formatter):
     def _prepare_data(self, record):
 
         data = {'event_id': str(uuid.uuid4().hex),
-                'message': record.message,
+                'message': str(record.message),
                 'timestamp': datetime.datetime.utcnow().isoformat(),
                 'level': record.levelno,
                 'logger': record.name,
                 'culprit': record.funcName,
                 'server_name': self.fqdn,
-                'sentry.interfaces.Message': {'message': record.msg,
+                'sentry.interfaces.Message': {'message': str(record.msg),
                                               # convert args to str to prevent
                                               # 'not JSON serializable' errors
                                               'params': [str(a) for a in record.args]
