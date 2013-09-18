@@ -1,4 +1,5 @@
 import datetime
+import inspect
 import logging
 import uuid
 
@@ -108,11 +109,14 @@ class Log2Json(logging.Formatter):
         See
         http://sentry.readthedocs.org/en/latest/developer/interfaces/index.html
         for more information on Sentry interfaces."""
-        type_, value, _ = record.exc_info
+        type_, value, tb = record.exc_info
+
         data[SENTRY_INTERFACES_EXCEPTION] = {"type": str(type_),
                                                "value": str(value),
                                                "module": record.module
                                                }
+
+        stack = inspect.getinnerframes(tb)
 
         # This next python statement copied pretty much verbatim from
         # raven-python (https://github.com/getsentry/raven-python).
@@ -126,7 +130,7 @@ class Log2Json(logging.Formatter):
                 v,
                 string_length=self.string_max_length,
                 list_length=self.list_max_length),
-            get_stack_info(iter_stack_frames()))
+            get_stack_info(iter_stack_frames(stack)))
         # end of copied code
 
         # filter out unwanted frames..
